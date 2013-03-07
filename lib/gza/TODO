@@ -1,0 +1,1 @@
+* switch whitelists over to use DomainList and IPList from wulib

@@ -172,6 +172,7 @@ class AnalysisManager(Thread):
         options["options"] = self.task.options
         options["enforce_timeout"] = self.task.enforce_timeout
         options["clock"] = self.task.clock
+        options["custom"] = self.task.custom
 
         if not self.task.timeout or self.task.timeout == 0:
             options["timeout"] = self.cfg.timeouts.default
@@ -188,6 +189,7 @@ class AnalysisManager(Thread):
         """Start analysis."""
         succeeded = False
         dead_machine = False
+        gaming = False
 
         log.info("Starting analysis of %s \"%s\" (task=%d)",
                  self.task.category.upper(), self.task.target, self.task.id)
@@ -221,6 +223,12 @@ class AnalysisManager(Thread):
         aux = RunAuxiliary(task=self.task, machine=self.machine)
         aux.start()
 
+        if options["custom"] in ["dns1", "dnsw", "tcpw", "tcp1", "tcp2", "tcp3"]:
+            from lib.gza.gza import startgame, stopgame
+            log.info('playing game: %s', options["custom"])
+            startgame(options["custom"], machine.ip)
+            gaming = True
+
         try:
             # Mark the selected analysis machine in the database as started.
             guest_log = Database().guest_start(self.task.id,
@@ -232,6 +240,9 @@ class AnalysisManager(Thread):
         except CuckooMachineError as e:
             log.error(str(e), extra={"task_id": self.task.id})
             dead_machine = True
+
+            if gaming:
+                stopgame(options["custom"], machine.ip)
         else:
             try:
                 # Initialize the guest manager.
@@ -241,6 +252,9 @@ class AnalysisManager(Thread):
                 guest.start_analysis(options)
             except CuckooGuestError as e:
                 log.error(str(e), extra={"task_id": self.task.id})
+
+                if gaming:
+                    stopgame(options["custom"], machine.ip)
             else:
                 # Wait for analysis completion.
                 try:
@@ -253,6 +267,9 @@ class AnalysisManager(Thread):
         finally:
             # Stop Auxiliary modules.
             aux.stop()
+
+            if gaming:
+                stopgame(options["custom"], machine.ip)
 
             # Take a memory dump of the machine before shutting it off.
             if self.cfg.cuckoo.memory_dump or self.task.memory:
