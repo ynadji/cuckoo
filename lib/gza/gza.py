@@ -27,8 +27,7 @@ def startgame(game, ip):
     vmnum = ip.split('.')[2]
     if game == 'none':
         return
-    args = gameargs[game]
-    args.append(str(vmnum))
+    args = gameargs[game] + [str(vmnum)]
 
     if game.startswith('dns'):
         transport = 'udp'
