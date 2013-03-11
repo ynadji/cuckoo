@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import os
+import sys
 import time
 import shutil
 import logging
@@ -21,6 +22,8 @@ from lib.cuckoo.core.guest import GuestManager
 from lib.cuckoo.core.resultserver import Resultserver
 from lib.cuckoo.core.plugins import list_plugins, RunAuxiliary, RunProcessing
 from lib.cuckoo.core.plugins import RunSignatures, RunReporting
+
+from lib.gza.nfqueuepool import startqueues
 
 log = logging.getLogger(__name__)
 
@@ -224,9 +227,9 @@ class AnalysisManager(Thread):
         aux.start()
 
         if options["custom"] in ["dns1", "dnsw", "tcpw", "tcp1", "tcp2", "tcp3"]:
-            from lib.gza.gza import startgame, stopgame
+            from lib.gza.nfqueuepool import addiptablesrule, removeiptablesrule
             log.info('playing game: %s', options["custom"])
-            startgame(options["custom"], machine.ip)
+            addiptablesrule(options["custom"], self.machine.ip)
             gaming = True
 
         try:
@@ -242,7 +245,7 @@ class AnalysisManager(Thread):
             dead_machine = True
 
             if gaming:
-                stopgame(options["custom"], machine.ip)
+                removeiptablesrule(options["custom"], self.machine.ip)
         else:
             try:
                 # Initialize the guest manager.
@@ -254,7 +257,7 @@ class AnalysisManager(Thread):
                 log.error(str(e), extra={"task_id": self.task.id})
 
                 if gaming:
-                    stopgame(options["custom"], machine.ip)
+                    removeiptablesrule(options["custom"], self.machine.ip)
             else:
                 # Wait for analysis completion.
                 try:
@@ -269,7 +272,7 @@ class AnalysisManager(Thread):
             aux.stop()
 
             if gaming:
-                stopgame(options["custom"], machine.ip)
+                removeiptablesrule(options["custom"], self.machine.ip)
 
             # Take a memory dump of the machine before shutting it off.
             if self.cfg.cuckoo.memory_dump or self.task.memory:
@@ -424,6 +427,13 @@ class Scheduler:
             raise CuckooCriticalError("No machines available")
         else:
             log.info("Loaded %s machine/s", len(machinery.machines()))
+
+        # Start nfqueues!
+        if os.fork() == 0:
+            startqueues(numqs=len(machinery.machines()))
+            sys.exit(0)
+
+        time.sleep(15)
 
     def stop(self):
         """Stop scheduler."""
