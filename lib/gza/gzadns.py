@@ -11,16 +11,17 @@ from gzacommon import GZA
 class DNSGZA(GZA):
     def __init__(self, vmnum, opts):
         super(DNSGZA, self).__init__(vmnum, opts)
+
         if self.game == 'dropn':
-            sys.stderr.write('--drop-n not implemented in %s, terminating\n'
-                    % self.__class__.__name__)
+            self.log.error('--drop-n not implemented in %s, terminating',
+                    self.__class__.__name__)
             sys.exit(2)
         elif self.game == 'taken':
             self.count = self.opts.taken
 
     def reset(self, signum, frame):
         if self.game == 'taken':
-            sys.stderr.write('Reset self.count in %s\n' % self.__class__.__name__)
+            self.log.error('Reset self.count in %s', self.__class__.__name__)
             self.count = self.opts.taken
         super(DNSGZA, self).reset(signum, frame)
 
@@ -43,7 +44,7 @@ class DNSGZA(GZA):
         self.remove_computed_fields(qpkt)
 
     def forge(self, packet):
-        print('NXDomain for %s on %s' % (packet[DNSQR].qname, packet[IP].dst))
+        self.log.debug('NXDomain for %s on %s', packet[DNSQR].qname, packet[IP].dst)
         self.nxdomain(packet)
         return True
 
@@ -52,7 +53,7 @@ class DNSGZA(GZA):
         """If we have a DNS response, change it to NXDomain."""
         dns = packet[DNS]
         dnsqr = packet[DNSQR]
-        print("Domain name: %s" % dnsqr.qname)
+        self.log.debug("Domain name: %s", dnsqr.qname)
 
         # We ALWAYS want to ignore this. Consider the game of accept the first
         # DNS request and spoof the rest. We are trying to attack malware
@@ -65,14 +66,14 @@ class DNSGZA(GZA):
             return False
 
         if self.opts.whitelist and self.whitelisted(dnsqr.qname):
-            print('%s is whitelisted' % dnsqr.qname)
+            self.log.debug('%s is whitelisted', dnsqr.qname)
             return False
         # Handle dropall game
         if self.game == 'dropall':
             return self.forge(packet)
         elif self.game == 'taken':
             if self.gamestate[dnsqr.qname] == 'whitelisted':
-                print("%s was a --take-n packet, accepting" % dnsqr.qname)
+                self.log.debug("%s was a --take-n packet, accepting", dnsqr.qname)
                 return False
             # Game over, reject all from now on
             elif self.count == 0:
@@ -80,11 +81,11 @@ class DNSGZA(GZA):
             else:
                 self.count -= 1
                 self.gamestate[dnsqr.qname] = 'whitelisted'
-                print('--take-n, let the packet through. %d more free packets left!'
-                        % self.count)
+                self.log.debug('--take-n, let the packet through. %d more free packets left!',
+                        self.count)
                 return False
 
-        print('Fell through game ifelif chain, do not spoof')
+        self.log.debug('Fell through game ifelif chain, do not spoof')
         return False
 
     def playgame(self, payload):

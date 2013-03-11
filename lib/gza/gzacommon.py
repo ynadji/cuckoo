@@ -5,6 +5,7 @@ import signal
 import time
 import whitelist
 from collections import defaultdict
+import logging
 
 class GZA(object):
     def __init__(self, vmnum, opts):
@@ -14,6 +15,7 @@ class GZA(object):
         self.iface = 'virbr1'
         self.opts = opts
         self.mac = '52:54:00:1D:3A:4F'
+        self.log = logging.getLogger(__name__)
 
         if self.opts.whitelist:
             whitelist.makewhitelist(self.opts.whitelistpath)

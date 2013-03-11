@@ -16,8 +16,8 @@ class TCPGZA(GZA):
     def __init__(self, vmnum, opts):
         super(TCPGZA, self).__init__(vmnum, opts)
         if self.game == 'dropn':
-            sys.stderr.write('--drop-n not implemented in %s, terminating\n'
-                    % self.__class__.__name__)
+            self.log.error('--drop-n not implemented in %s, terminating',
+                    self.__class__.__name__)
             sys.exit(2)
         elif self.game == 'taken':
             self.count = self.opts.taken
@@ -36,12 +36,12 @@ class TCPGZA(GZA):
 
     def reset(self, signum, frame):
         if self.game == 'taken':
-            sys.stderr.write('Reset self.count in %s\n' % self.__class__.__name__)
+            self.log.error('Reset self.count in %s', self.__class__.__name__)
             self.count = self.opts.taken
         super(TCPGZA, self).reset(signum, frame)
 
     def forge(self, packet):
-        print('TCP RST for %s on %s' % (packet[IP].src, packet[IP].dst))
+        self.log.debug('TCP RST for %s on %s', packet[IP].src, packet[IP].dst)
         self.rst(packet)
         return True
 
@@ -49,7 +49,7 @@ class TCPGZA(GZA):
     def spoof(self, packet):
         """Spoof TCP streams with TCP RST"""
         src_ip = packet[IP].src
-        print("%s reaching to IP address: %s" % (packet[IP].dst, src_ip))
+        self.log.debug("%s reaching to IP address: %s", packet[IP].dst, src_ip)
 
         # IP for time.windows.com. See gzadns.py to see why this requires its
         # own separate "whitelist".
@@ -57,7 +57,7 @@ class TCPGZA(GZA):
             return False
 
         if self.opts.whitelist and self.whitelistedip(src_ip):
-            print('%s is whitelisted' % src_ip)
+            self.log.debug('%s is whitelisted', src_ip)
             return False
 
         if self.game == 'dropall':
@@ -65,18 +65,18 @@ class TCPGZA(GZA):
         elif self.game == 'taken':
             # Game over, reject all.
             if self.gamestate[src_ip] == 'whitelisted':
-                print("%s was a --take-n packet, accepting" % src_ip)
+                self.log.debug("%s was a --take-n packet, accepting", src_ip)
                 return False
             elif self.count == 0:
                 return self.forge(packet)
             else:
                 self.count -= 1
                 self.gamestate[src_ip] = 'whitelisted'
-                print('--take-n, let the packet through. %d more free packets left!'
-                        % self.count)
+                self.log.debug('--take-n, let the packet through. %d more free packets left!',
+                        self.count)
                 return False
 
-        print('Fell through game ifelif chain, do not spoof')
+        self.log.debug('Fell through game ifelif chain, do not spoof')
         return False
 
     def playgame(self, payload):
