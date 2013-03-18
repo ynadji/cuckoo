@@ -21,6 +21,9 @@ sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), ".."))
 from lib.cuckoo.common.constants import CUCKOO_VERSION, CUCKOO_ROOT
 from lib.cuckoo.common.utils import store_temp_file, delete_folder
 from lib.cuckoo.core.database import Database
+from lib.cuckoo.core.reporter import Reporter
+from lib.cuckoo.core.processor import Processor
+from lib.cuckoo.core.startup import init_modules
 
 # Global DB pointer.
 db = Database()
@@ -242,6 +245,38 @@ def tasks_report(task_id, report_format="json"):
         return open(report_path, "rb").read()
     else:
         return HTTPError(404, "Report not found")
+
+@route("/reports/create/<task_id>", method="GET")
+@route("/reports/create/<task_id>/<report_format>", method="GET")
+def create_report(task_id, report_format="json"):
+    response = {}
+
+    init_modules()
+
+    formats = {
+        "json" : "report.json",
+        "html" : "report.html",
+        "maec" : "report.maec-1.1.xml",
+        "metadata" : "report.metadata.xml",
+        "pickle" : "report.pickle"
+    }
+
+    if report_format.lower() in formats:
+        report_path = os.path.join(CUCKOO_ROOT,
+                                   "storage",
+                                   "analyses",
+                                   task_id,
+                                   "reports",
+                                   formats[report_format.lower()])
+    else:
+        return HTTPError(400, "Invalid report format")
+
+    if os.path.exists(report_path):
+        return HTTPError(409, "Report already exists")
+    else:
+        results = Processor(task_id).run()
+        Reporter(task_id).run(results)
+        return open(report_path, "rb").read()
 
 @route("/files/view/md5/<md5>", method="GET")
 @route("/files/view/sha256/<sha256>", method="GET")
