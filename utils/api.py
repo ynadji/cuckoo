@@ -271,12 +271,9 @@ def create_report(task_id, report_format="json"):
     else:
         return HTTPError(400, "Invalid report format")
 
-    if os.path.exists(report_path):
-        return HTTPError(409, "Report already exists")
-    else:
-        results = Processor(task_id).run()
-        Reporter(task_id).run(results)
-        return open(report_path, "rb").read()
+    results = Processor(task_id).run()
+    Reporter(task_id).run(results)
+    return open(report_path, "rb").read()
 
 @route("/files/view/md5/<md5>", method="GET")
 @route("/files/view/sha256/<sha256>", method="GET")
