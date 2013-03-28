@@ -1,0 +1,4 @@
+This fork of Cuckoo's Sandbox merges in the GZA games framework [1]. Using this
+is vastly preferred to trying to deal with drop's hobbled together scripts.
+
+[1] https://github.com/ynadji/drop
