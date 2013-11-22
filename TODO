@@ -1,0 +1,5 @@
+= TODO =
+* Convert GZA to an auxiliary plugin in the new Cuckoo architecture.
+* Add patch for compressed output
+* Remove behavior ignoring from my code (after the above)
+* Clustered web submissions?
