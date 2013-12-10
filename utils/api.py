@@ -21,9 +21,6 @@ sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), ".."))
 from lib.cuckoo.common.constants import CUCKOO_VERSION, CUCKOO_ROOT
 from lib.cuckoo.common.utils import store_temp_file, delete_folder
 from lib.cuckoo.core.database import Database
-from lib.cuckoo.core.reporter import Reporter
-from lib.cuckoo.core.processor import Processor
-from lib.cuckoo.core.startup import init_modules
 
 # Global DB pointer.
 db = Database()
@@ -32,7 +29,7 @@ def jsonize(data):
     """Converts data dict to JSON.
     @param data: data dict
     @return: JSON formatted data
-    """ 
+    """
     response.content_type = "application/json; charset=UTF-8"
     return json.dumps(data, sort_keys=False, indent=4)
 
