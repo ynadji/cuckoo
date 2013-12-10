@@ -13,19 +13,15 @@ try:
 except ImportError:
     HAVE_BSON = False
 
+from lib.cuckoo.common.defines import REG_SZ, REG_EXPAND_SZ
+from lib.cuckoo.common.defines import REG_DWORD_BIG_ENDIAN
+from lib.cuckoo.common.defines import REG_DWORD_LITTLE_ENDIAN
+from lib.cuckoo.common.exceptions import CuckooResultError
 from lib.cuckoo.common.logtbl import table as LOGTBL
 from lib.cuckoo.common.utils import get_filename_from_path
-from lib.cuckoo.common.exceptions import CuckooResultError
 
 log = logging.getLogger(__name__)
 
-REG_NONE                = 0
-REG_SZ                  = 1
-REG_EXPAND_SZ           = 2
-REG_BINARY              = 3
-REG_DWORD_LITTLE_ENDIAN = 4
-REG_DWORD               = 4
-REG_DWORD_BIG_ENDIAN    = 5
 
 # should probably prettify this
 def expand_format(fs):
@@ -207,15 +203,13 @@ class NetlogParser(object):
 
 ###############################################################################
 # Generic BSON based protocol - by rep
-# Allows all kinds of languages / sources to generate input for Cuckoo
-#  thus we can reuse report generation / signatures for other API trace sources
+# Allows all kinds of languages / sources to generate input for Cuckoo,
+# thus we can reuse report generation / signatures for other API trace sources
 ###############################################################################
 
 TYPECONVERTERS = {
     "p": lambda v: "0x%08x" % default_converter(v),
 }
-
-APICATEGORIES = dict((i[0], i[1]) for i in LOGTBL)
 
 # 1 Mb max message length
 MAX_MESSAGE_LENGTH = 20 * 1024 * 1024
@@ -281,8 +275,20 @@ class BsonParser(object):
             # API call index info message, explaining the argument names, etc
             name = dec.get("name", "NONAME")
             arginfo = dec.get("args", [])
+            category = dec.get("category")
 
-            self.infomap[index] = (name, arginfo)
+            # Bson dumps that were generated before cuckoomon exported the
+            # "category" field have to get the category using the old method.
+            if not category:
+                # Try to find the entry/entries with this api name.
+                category = [_ for _ in LOGTBL if _[0] == name]
+
+                # If we found an entry, take its category, otherwise we take
+                # the default string "unknown."
+                category = category[0][1] if category else "unknown"
+
+            argnames, converters = check_names_for_typeinfo(arginfo)
+            self.infomap[index] = name, arginfo, argnames, converters, category
 
         elif mtype == "debug":
             log.info("Debug message from monitor: "
@@ -305,8 +311,7 @@ class BsonParser(object):
                             "to explain first: {0}".format(dec))
                 return True
 
-            apiname, arginfo = self.infomap[index]
-            argnames, converters = check_names_for_typeinfo(arginfo)
+            apiname, arginfo, argnames, converters, category = self.infomap[index]
             args = dec.get("args", [])
 
             if len(args) != len(argnames):
@@ -345,9 +350,6 @@ class BsonParser(object):
             context[2] = argdict.pop("retval", 0)
             arguments = argdict.items()
             arguments += dec.get("aux", {}).items()
-
-            modulename = "NONE"
-            category = APICATEGORIES.get(apiname, "unknown")
 
             self.handler.log_call(context, apiname, category, arguments)
 

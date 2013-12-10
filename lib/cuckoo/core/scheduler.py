@@ -10,18 +10,18 @@ import logging
 import Queue
 from threading import Thread, Lock
 
+from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.constants import CUCKOO_ROOT
 from lib.cuckoo.common.exceptions import CuckooMachineError, CuckooGuestError
 from lib.cuckoo.common.exceptions import CuckooOperationalError
 from lib.cuckoo.common.exceptions import CuckooCriticalError
 from lib.cuckoo.common.objects import File
 from lib.cuckoo.common.utils import create_folder
-from lib.cuckoo.common.config import Config
 from lib.cuckoo.core.database import Database, TASK_COMPLETED, TASK_REPORTED
 from lib.cuckoo.core.guest import GuestManager
-from lib.cuckoo.core.resultserver import Resultserver
 from lib.cuckoo.core.plugins import list_plugins, RunAuxiliary, RunProcessing
 from lib.cuckoo.core.plugins import RunSignatures, RunReporting
+from lib.cuckoo.core.resultserver import Resultserver
 
 from lib.gza.nfqueuepool import startqueues
 
@@ -84,6 +84,17 @@ class AnalysisManager(Thread):
             create_folder(folder=self.storage)
         except CuckooOperationalError:
             log.error("Unable to create analysis folder %s", self.storage)
+            return False
+
+        return True
+
+    def check_file(self):
+        """Checks the integrity of the file to be analyzed."""
+        sample = Database().view_sample(self.task.sample_id)
+
+        sha256 = File(self.task.target).get_sha256()
+        if sha256 != sample.sha256:
+            log.error("Target file has been modified after submission: \"%s\"", self.task.target)
             return False
 
         return True
@@ -202,6 +213,11 @@ class AnalysisManager(Thread):
             return False
 
         if self.task.category == "file":
+            # Check whether the file has been changed for some unknown reason.
+            # And fail this analysis if it has been modified.
+            if not self.check_file():
+                return False
+
             # Store a copy of the original file.
             if not self.store_file():
                 return False
@@ -249,8 +265,7 @@ class AnalysisManager(Thread):
         else:
             try:
                 # Initialize the guest manager.
-                guest = GuestManager(self.machine.name, self.machine.ip,
-                                     self.machine.platform)
+                guest = GuestManager(self.machine.name, self.machine.ip, self.machine.platform)
                 # Start the analysis.
                 guest.start_analysis(options)
             except CuckooGuestError as e:
@@ -278,8 +293,7 @@ class AnalysisManager(Thread):
             if self.cfg.cuckoo.memory_dump or self.task.memory:
                 try:
                     machinery.dump_memory(self.machine.label,
-                                          os.path.join(self.storage,
-                                                       "memory.dmp"))
+                                          os.path.join(self.storage, "memory.dmp"))
                 except NotImplementedError:
                     log.error("The memory dump functionality is not available "
                               "for the current machine manager")
@@ -337,11 +351,26 @@ class AnalysisManager(Thread):
         # If the target is a file and the user enabled the option,
         # delete the original copy.
         if self.task.category == "file" and self.cfg.cuckoo.delete_original:
-            try:
-                os.remove(self.task.target)
-            except OSError as e:
-                log.error("Unable to delete original file at path \"%s\": %s",
-                          self.task.target, e)
+            if not os.path.exists(self.task.target):
+                log.warning("Original file does not exist anymore: \"%s\": "
+                            "File not found", self.task.target)
+            else:
+                try:
+                    os.remove(self.task.target)
+                except OSError as e:
+                    log.error("Unable to delete original file at path "
+                              "\"%s\": %s", self.task.target, e)
+
+        # If the target is a file and the user enabled the delete copy of
+        # the binary option, then delete the copy.
+        if self.task.category == "file" and self.cfg.cuckoo.delete_bin_copy:
+            if not os.path.exists(self.binary):
+                log.warning("Copy of the original file does not exist anymore: \"%s\": File not found", self.binary)
+            else:
+                try:
+                    os.remove(self.binary)
+                except OSError as e:
+                    log.error("Unable to delete the copy of the original file at path \"%s\": %s", self.binary, e)
 
         log.info("Task #%d: reports generation completed (path=%s)",
                  self.task.id, self.storage)

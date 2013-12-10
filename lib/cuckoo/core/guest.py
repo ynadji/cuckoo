@@ -13,10 +13,10 @@ from StringIO import StringIO
 from zipfile import ZipFile, ZIP_STORED
 
 from lib.cuckoo.common.config import Config
-from lib.cuckoo.common.exceptions import CuckooGuestError
 from lib.cuckoo.common.constants import CUCKOO_GUEST_PORT, CUCKOO_GUEST_INIT
 from lib.cuckoo.common.constants import CUCKOO_GUEST_COMPLETED
 from lib.cuckoo.common.constants import CUCKOO_GUEST_FAILED
+from lib.cuckoo.common.exceptions import CuckooGuestError
 from lib.cuckoo.common.utils import TimeoutServer, sanitize_filename
 
 log = logging.getLogger(__name__)
@@ -54,6 +54,7 @@ class GuestManager:
         # the critical timeout is h it.
         abort = Event()
         abort.clear()
+
         def die():
             abort.set()
 
@@ -187,6 +188,7 @@ class GuestManager:
         # Same procedure as in self.wait(). Just look at the comments there.
         abort = Event()
         abort.clear()
+
         def die():
             abort.set()
 

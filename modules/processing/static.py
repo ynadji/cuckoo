@@ -17,9 +17,9 @@ try:
 except ImportError:
     HAVE_PEFILE = False
 
-from lib.cuckoo.common.objects import File
-from lib.cuckoo.common.constants import CUCKOO_ROOT
 from lib.cuckoo.common.abstracts import Processing
+from lib.cuckoo.common.constants import CUCKOO_ROOT
+from lib.cuckoo.common.objects import File
 from lib.cuckoo.common.utils import convert_to_printable
 
 
@@ -129,14 +129,10 @@ class PortableExecutable:
         for entry in self.pe.sections:
             try:
                 section = {}
-                section["name"] = \
-                    convert_to_printable(entry.Name.strip("\x00"))
-                section["virtual_address"] = \
-                    "0x{0:08x}".format(entry.VirtualAddress)
-                section["virtual_size"] = \
-                    "0x{0:08x}".format(entry.Misc_VirtualSize)
-                section["size_of_data"] = \
-                    "0x{0:08x}".format(entry.SizeOfRawData)
+                section["name"] = convert_to_printable(entry.Name.strip("\x00"))
+                section["virtual_address"] = "0x{0:08x}".format(entry.VirtualAddress)
+                section["virtual_size"] = "0x{0:08x}".format(entry.Misc_VirtualSize)
+                section["size_of_data"] = "0x{0:08x}".format(entry.SizeOfRawData)
                 section["entropy"] = entry.get_entropy()
                 sections.append(section)
             except:
@@ -162,8 +158,6 @@ class PortableExecutable:
                         name = str(resource_type.name)
                     else:
                         name = str(pefile.RESOURCE_TYPE.get(resource_type.struct.Id))
-                    if name == None:
-                        name = str(esource_type.struct.Id)
 
                     if hasattr(resource_type, "directory"):
                         for resource_id in resource_type.directory.entries:
@@ -236,8 +230,7 @@ class PortableExecutable:
         results["pe_sections"] = self._get_sections()
         results["pe_resources"] = self._get_resources()
         results["pe_versioninfo"] = self._get_versioninfo()
-        results["imported_dll_count"] = len([x for x in results["pe_imports"]
-                                             if x.get("dll")])
+        results["imported_dll_count"] = len([x for x in results["pe_imports"] if x.get("dll")])
         return results
 
 class Static(Processing):

@@ -9,13 +9,13 @@ from time import time
 from ctypes import byref, c_ulong, create_string_buffer, c_int, sizeof
 from shutil import copy
 
+from lib.common.constants import PIPE, PATHS
 from lib.common.defines import KERNEL32, NTDLL, SYSTEM_INFO, STILL_ACTIVE
 from lib.common.defines import THREAD_ALL_ACCESS, PROCESS_ALL_ACCESS
 from lib.common.defines import STARTUPINFO, PROCESS_INFORMATION
 from lib.common.defines import CREATE_NEW_CONSOLE, CREATE_SUSPENDED
 from lib.common.defines import MEM_RESERVE, MEM_COMMIT, PAGE_READWRITE
 from lib.common.defines import MEMORY_BASIC_INFORMATION
-from lib.common.constants import PIPE, PATHS
 from lib.common.errors import get_error_string
 from lib.common.rand import random_string
 from lib.common.results import NetlogFile
@@ -28,8 +28,7 @@ def randomize_dll(dll_path):
     @return: new DLL path.
     """
     new_dll_name = random_string(6)
-    new_dll_path = os.path.join(os.getcwd(), "dll",
-                                "{0}.dll".format(new_dll_name))
+    new_dll_path = os.path.join(os.getcwd(), "dll", "{0}.dll".format(new_dll_name))
 
     try:
         copy(dll_path, new_dll_path)

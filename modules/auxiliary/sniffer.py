@@ -9,8 +9,8 @@ import logging
 import subprocess
 
 from lib.cuckoo.common.abstracts import Auxiliary
-from lib.cuckoo.common.constants import CUCKOO_ROOT, CUCKOO_GUEST_PORT
 from lib.cuckoo.common.config import Config
+from lib.cuckoo.common.constants import CUCKOO_ROOT, CUCKOO_GUEST_PORT
 
 log = logging.getLogger(__name__)
 
@@ -19,8 +19,7 @@ class Sniffer(Auxiliary):
     def start(self):
         tcpdump = self.options.get("tcpdump", "/usr/sbin/tcpdump")
         interface = self.options.get("interface")
-        file_path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
-                                 str(self.task.id), "dump.pcap")
+        file_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(self.task.id), "dump.pcap")
         host = self.machine.ip
 
         if not os.path.exists(tcpdump):
