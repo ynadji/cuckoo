@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# When snapshots get fucked up, they just need to be referenced by
+# name once and they'll become "current" again. This does exactly that.
+#
+# Author: Yacin Nadji <yacin@gatech.edu>
+#
+
+drop () {
+  tail -n +$(($1+1)) $2
+}
+
+sleepshutdown() {
+  sleep 30
+  virsh shutdown $1
+}
+
+if [[ $# -ne 1 || "$(id -u)" != "0" ]]; then
+    echo "usage: sudo ./resetsnapshot gza##"
+    exit 2
+fi
+
+virsh start $1
+virsh snapshot-revert $1 --current
+
+if [[ $? == 1 ]]; then
+  echo "snapshot-revert failed; fixing"
+  snapid=$(virsh snapshot-list $1 | drop 2 | awk '{print $1}')
+  virsh snapshot-revert $1 $snapid
+  sleepshutdown $1 &
+else
+  echo "snapshot-revert suceeded; no fixing required!"
+  virsh destroy $1
+fi

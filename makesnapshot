@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# Make initial snapshot.
+#
+
+BRIDGE_IFACE=virbr1
+
+isalive() {
+  net_octet=$(echo $1 | \grep -oP "\d+" | sed 's/^0//')
+  net_octet=$(($net_octet+1))
+  fping -aI $BRIDGE_IFACE 192.168.$net_octet.1
+}
+
+if [[ $# -ne 1 || "$(id -u)" != "0" ]]; then
+    echo "usage: sudo ./clonevm gza## (always clones from gza00)"
+    exit 2
+fi
+
+virsh start $1
+
+until isalive $1; do
+  echo "$1 not alive w/ correct IP, waiting..."
+  sleep 5
+done
+
+echo "$1 is alive! generating snapshot..."
+
+virsh snapshot-create $1
+virsh shutdown $1

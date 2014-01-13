@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# Clone a VM. Assumes domains are in the format "gza##" and network
+# configs have already been set up.
+#
+
+# current debian squeeze version has a bug so let's specify a newer version
+VIRTCLONE=/home/ynadji/tarballs/virtinst-0.600.3/virt-clone
+POOLDIR=/space/gzaimages # we symlink the images here. this is what virsh sees (allows running from disk OR from a tmpfs mount)
+IMGSTOREDIR=/space/images # we store the real images here
+
+if [[ $# -ne 1 || "$(id -u)" != "0" ]]; then
+    echo "usage: sudo ./clonevm gza## (always clones from gza00)"
+    exit 2
+fi
+
+fromvm=gza00
+tovm=$1
+fromvmnum=$(echo $fromvm | tr -d 'gza')
+tovmnum=$(echo $tovm | tr -d 'gza')
+
+$VIRTCLONE -o $fromvm -n $tovm -m aa:bb:cc:dd:ee:$tovmnum -f /$POOLDIR/$tovm.img
+mv /$POOLDIR/$tovm.img /$IMGSTOREDIR/$tovm.img
+ln -s /$IMGSTOREDIR/$tovm.img /$POOLDIR/$tovm.img
+sleep 10
+./makesnapshot $tovm
