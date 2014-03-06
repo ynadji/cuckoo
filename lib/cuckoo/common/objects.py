@@ -102,7 +102,7 @@ class File:
         sha1    = hashlib.sha1()
         sha256  = hashlib.sha256()
         sha512  = hashlib.sha512()
-        
+
         for chunk in self.get_chunks():
             crc = binascii.crc32(chunk, crc)
             md5.update(chunk)
@@ -177,6 +177,18 @@ class File:
             return pydeep.hash_file(self.file_path)
         except Exception:
             return None
+
+    def get_pdb(self):
+
+	try:
+		os.system("strings -a " + self.file_path + " |grep .pdb >" + self.file_path + "pdb.txt")
+		with open(self.file_path + "pdb.txt", "r") as f:
+			line = f.readline()
+			return line
+		f.close()
+
+	except:
+		pass
 
     def get_type(self):
         """Get MIME file type.
@@ -260,6 +272,7 @@ class File:
         infos["sha256"] = self.get_sha256()
         infos["sha512"] = self.get_sha512()
         infos["ssdeep"] = self.get_ssdeep()
+        infos["pdb"] = self.get_pdb()
         infos["type"] = self.get_type()
         infos["yara"] = self.get_yara()
 
