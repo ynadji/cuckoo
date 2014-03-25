@@ -183,6 +183,7 @@ class AnalysisManager(Thread):
         options["options"] = self.task.options
         options["enforce_timeout"] = self.task.enforce_timeout
         options["clock"] = self.task.clock
+        options["custom"] = self.task.custom
 
         if not self.task.timeout or self.task.timeout == 0:
             options["timeout"] = self.cfg.timeouts.default
@@ -226,6 +227,7 @@ class AnalysisManager(Thread):
 
         # Generate the analysis configuration file.
         options = self.build_options()
+        self.task.options = options
 
         # At this point we can tell the Resultserver about it.
         try:
