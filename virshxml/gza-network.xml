@@ -1,0 +1,49 @@
+<network>
+  <name>gza</name>
+  <uuid>5e82fe38-1ad3-2892-2bec-373ca31b1d3a</uuid>
+  <forward mode='route'/>
+  <bridge name='virbr1' stp='on' delay='0' />
+  <mac address='52:54:00:6D:E6:8D'/>
+  <dns>
+    <host ip='8.8.8.8'>
+    </host>
+  </dns>
+  <ip address='192.168.0.1' netmask='255.255.0.0'>
+    <dhcp>
+      <range start='192.168.0.2' end='192.168.255.254' />
+      <host mac='aa:bb:cc:dd:ee:00' name='gza00' ip='192.168.1.1' />
+      <host mac='aa:bb:cc:dd:ee:01' name='gza01' ip='192.168.2.1' />
+      <host mac='aa:bb:cc:dd:ee:02' name='gza02' ip='192.168.3.1' />
+      <host mac='aa:bb:cc:dd:ee:03' name='gza03' ip='192.168.4.1' />
+      <host mac='aa:bb:cc:dd:ee:04' name='gza04' ip='192.168.5.1' />
+      <host mac='aa:bb:cc:dd:ee:05' name='gza05' ip='192.168.6.1' />
+      <host mac='aa:bb:cc:dd:ee:06' name='gza06' ip='192.168.7.1' />
+      <host mac='aa:bb:cc:dd:ee:07' name='gza07' ip='192.168.8.1' />
+      <host mac='aa:bb:cc:dd:ee:08' name='gza08' ip='192.168.9.1' />
+      <host mac='aa:bb:cc:dd:ee:09' name='gza09' ip='192.168.10.1' />
+      <host mac='aa:bb:cc:dd:ee:10' name='gza10' ip='192.168.11.1' />
+      <host mac='aa:bb:cc:dd:ee:11' name='gza11' ip='192.168.12.1' />
+      <host mac='aa:bb:cc:dd:ee:12' name='gza12' ip='192.168.13.1' />
+      <host mac='aa:bb:cc:dd:ee:13' name='gza13' ip='192.168.14.1' />
+      <host mac='aa:bb:cc:dd:ee:14' name='gza14' ip='192.168.15.1' />
+      <host mac='aa:bb:cc:dd:ee:15' name='gza15' ip='192.168.16.1' />
+      <host mac='aa:bb:cc:dd:ee:16' name='gza16' ip='192.168.17.1' />
+      <host mac='aa:bb:cc:dd:ee:17' name='gza17' ip='192.168.18.1' />
+      <host mac='aa:bb:cc:dd:ee:18' name='gza18' ip='192.168.19.1' />
+      <host mac='aa:bb:cc:dd:ee:19' name='gza19' ip='192.168.20.1' />
+      <host mac='aa:bb:cc:dd:ee:20' name='gza20' ip='192.168.21.1' />
+      <host mac='aa:bb:cc:dd:ee:21' name='gza21' ip='192.168.22.1' />
+      <host mac='aa:bb:cc:dd:ee:22' name='gza22' ip='192.168.23.1' />
+      <host mac='aa:bb:cc:dd:ee:23' name='gza23' ip='192.168.24.1' />
+      <host mac='aa:bb:cc:dd:ee:24' name='gza24' ip='192.168.25.1' />
+      <host mac='aa:bb:cc:dd:ee:25' name='gza25' ip='192.168.26.1' />
+      <host mac='aa:bb:cc:dd:ee:26' name='gza26' ip='192.168.27.1' />
+      <host mac='aa:bb:cc:dd:ee:27' name='gza27' ip='192.168.28.1' />
+      <host mac='aa:bb:cc:dd:ee:28' name='gza28' ip='192.168.29.1' />
+      <host mac='aa:bb:cc:dd:ee:29' name='gza29' ip='192.168.30.1' />
+      <host mac='aa:bb:cc:dd:ee:30' name='gza30' ip='192.168.31.1' />
+      <host mac='aa:bb:cc:dd:ee:31' name='gza31' ip='192.168.32.1' />
+    </dhcp>
+  </ip>
+</network>
+
