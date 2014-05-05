@@ -6,11 +6,11 @@
 
 # current debian squeeze version has a bug so let's specify a newer version
 VIRTCLONE=/home/ynadji/tarballs/virtinst-0.600.3/virt-clone
-POOLDIR=/space/gzaimages # we symlink the images here. this is what virsh sees (allows running from disk OR from a tmpfs mount)
-IMGSTOREDIR=/space/images # we store the real images here
+POOLDIR=/ssd/gzaimages # the pool directory for virsh
 
-if [[ $# -ne 1 || "$(id -u)" != "0" ]]; then
-    echo "usage: sudo ./clonevm gza## (always clones from gza00)"
+if [[ ($# -ne 1 && $# -ne 2) || "$(id -u)" != "0" ]]; then
+    echo "usage: sudo ./clonevm gza## [imgstoredir] (always clones from gza00)"
+    echo "second argument is the directory to store the images if you'll be symlinking them to a tmpfs store"
     exit 2
 fi
 
@@ -20,7 +20,14 @@ fromvmnum=$(echo $fromvm | tr -d 'gza')
 tovmnum=$(echo $tovm | tr -d 'gza')
 
 $VIRTCLONE -o $fromvm -n $tovm -m aa:bb:cc:dd:ee:$tovmnum -f /$POOLDIR/$tovm.img
-mv /$POOLDIR/$tovm.img /$IMGSTOREDIR/$tovm.img
-ln -s /$IMGSTOREDIR/$tovm.img /$POOLDIR/$tovm.img
+
+# use this if the images will be symlinked to the pooldir and the pooldir
+# will be mounted as a tmpfs directory for speed
+if [[ $# -eq 2 ]]; then
+  IMGSTOREDIR=$2
+  mv /$POOLDIR/$tovm.img /$IMGSTOREDIR/$tovm.img
+  ln -s /$IMGSTOREDIR/$tovm.img /$POOLDIR/$tovm.img
+fi
+
 sleep 10
 ./makesnapshot $tovm
