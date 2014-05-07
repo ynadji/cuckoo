@@ -1,5 +1,5 @@
 <domain type='kvm'>
-  <name>gza00</name>
+  <name>gza0</name>
   <uuid>a7fb06c0-7873-b463-202a-011005284cfb</uuid>
   <memory unit='KiB'>131072</memory>
   <currentMemory unit='KiB'>131072</currentMemory>
@@ -21,7 +21,7 @@
     <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='/ssd/gzaimages/gza00.img'/>
+      <source file='/ssd/gzaimages/gza0.img'/>
       <target dev='hda' bus='ide'/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
@@ -39,7 +39,7 @@
       <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
     </controller>
     <interface type='network'>
-      <mac address='aa:bb:cc:dd:ee:00'/>
+      <mac address='aa:bb:cc:dd:ee:0'/>
       <source network='gza'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
     </interface>
