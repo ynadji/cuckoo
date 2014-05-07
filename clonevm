@@ -1,25 +1,29 @@
 #!/bin/bash
 #
-# Clone a VM. Assumes domains are in the format "gza##" and network
+# Clone a VM. Assumes domains are in the format "gza#" and network
 # configs have already been set up.
 #
+
+machex() {
+  echo "obase=16; $1" | bc | tr '[A-F]' '[a-f]'
+}
 
 # current debian squeeze version has a bug so let's specify a newer version
 VIRTCLONE=/home/ynadji/tarballs/virtinst-0.600.3/virt-clone
 POOLDIR=/ssd/gzaimages # the pool directory for virsh
 
 if [[ ($# -ne 1 && $# -ne 2) || "$(id -u)" != "0" ]]; then
-    echo "usage: sudo ./clonevm gza## [imgstoredir] (always clones from gza00)"
+    echo "usage: sudo ./clonevm gza# [imgstoredir] (always clones from gza0)"
     echo "second argument is the directory to store the images if you'll be symlinking them to a tmpfs store"
     exit 2
 fi
 
-fromvm=gza00
+fromvm=gza0
 tovm=$1
 fromvmnum=$(echo $fromvm | tr -d 'gza')
-tovmnum=$(echo $tovm | tr -d 'gza')
+tovmnum=$(machex "$(echo $tovm | tr -d 'gza')")
 
-$VIRTCLONE -o $fromvm -n $tovm -m aa:bb:cc:dd:ee:$tovmnum -f /$POOLDIR/$tovm.img
+$VIRTCLONE -o $fromvm -n $tovm -m aa:bb:cc:dd:ee:$tovmnum -f $POOLDIR/$tovm.img
 
 # use this if the images will be symlinked to the pooldir and the pooldir
 # will be mounted as a tmpfs directory for speed

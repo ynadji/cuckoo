@@ -12,7 +12,7 @@ isalive() {
 }
 
 if [[ $# -ne 1 || "$(id -u)" != "0" ]]; then
-    echo "usage: sudo ./clonevm gza## (always clones from gza00)"
+    echo "usage: sudo ./clonevm gza# (always clones from gza0)"
     exit 2
 fi
 
