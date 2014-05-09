@@ -13,6 +13,8 @@ from datetime import datetime
 
 from lib.cuckoo.common.exceptions import CuckooOperationalError
 
+tempfile.tempdir = '/var/tmp'
+
 try:
     import chardet
     HAVE_CHARDET = True
