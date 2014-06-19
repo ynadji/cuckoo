@@ -48,6 +48,6 @@ COMMIT
 :OUTPUT ACCEPT [2103:147243]
 # so we faithfully route traffic. the last argument and eth1 will probably need
 # to be changed when porting to other machines
--A POSTROUTING -s 192.168.0.0/16 -o bond0 -j SNAT --to-source 64.95.58.175
+-A POSTROUTING -s 192.168.0.0/16 -o eth1 -j SNAT --to-source 128.61.240.34
 COMMIT
 # Completed on Fri Mar  8 19:11:21 2013
