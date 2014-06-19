@@ -3,14 +3,20 @@
 # Clone a VM. Assumes domains are in the format "gza#" and network
 # configs have already been set up.
 #
+# To ensure cloned VMs have the proper IP address---instead of just using the
+# IP assigned to gza0---start gza0, issue ipconfig /release, and immediately shut
+# down the VM. This will force the new VMs to renew the IP and get assigned the
+# proper one before creating the snapshot. Afterwards run ./makesnapshot gza0 and
+# you should be good2go.
+#
 
 machex() {
   echo "obase=16; $1" | bc | tr '[A-F]' '[a-f]'
 }
 
 # current debian squeeze version has a bug so let's specify a newer version
-VIRTCLONE=/home/ynadji/tarballs/virtinst-0.600.3/virt-clone
-POOLDIR=/ssd/gzaimages # the pool directory for virsh
+VIRTCLONE=/home/yacin/tarballs/virtinst-0.600.3/virt-clone
+POOLDIR=/images # the pool directory for virsh
 
 if [[ ($# -ne 1 && $# -ne 2) || "$(id -u)" != "0" ]]; then
     echo "usage: sudo ./clonevm gza# [imgstoredir] (always clones from gza0)"
