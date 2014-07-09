@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# If cuckoo crashes and burns the VMs that were still running lose the memory
+# of what the --current snapshot is. This script checks for existing snapshots
+# but no --current and resets the latest snapshot to be --current. Otherwise
+# cuckoo spouts off nonsense errors like:
+#
+# 2014-07-09 17:13:40,361 [lib.cuckoo.core.scheduler] INFO: Starting analysis of FILE "/home/yacin/malware/20140628/001bec4b27b4288058bf2aca2e153501" (task=445)
+# 2014-07-09 17:13:40,393 [lib.cuckoo.core.scheduler] INFO: File already exists at "/home/yacin/cuckoo/storage/binaries/5b864e4578fba88dac0e7e7207727cfe357129cfbf86d3e7ac8f79af23a0a1b0"
+# 2014-07-09 17:13:40,446 [lib.cuckoo.core.scheduler] INFO: Task #445: acquired machine gza0 (label=gza0)
+# 2014-07-09 17:13:40,476 [modules.auxiliary.sniffer] INFO: Started sniffer with PID 26548 (interface=virbr1, host=192.168.1.1, dump path=/home/yacin/cuckoo/storage/analyses/445/dump.pcap)
+# 2014-07-09 17:13:40,820 [lib.cuckoo.core.scheduler] WARNING: Unable to stop machine gza0: Trying to stop an already stopped machine gza0
+# 2014-07-09 17:13:40,872 [lib.cuckoo.core.scheduler] ERROR: Failure in AnalysisManager.run
+# Traceback (most recent call last):
+#   File "/home/yacin/cuckoo/lib/cuckoo/core/scheduler.py", line 369, in run
+#     success = self.launch_analysis()
+#   File "/home/yacin/cuckoo/lib/cuckoo/core/scheduler.py", line 249, in launch_analysis
+#     machinery.start(self.machine.label)
+#   File "/home/yacin/cuckoo/lib/cuckoo/common/abstracts.py", line 362, in start
+#     elif self._get_snapshot(label):
+#   File "/home/yacin/cuckoo/lib/cuckoo/common/abstracts.py", line 570, in _get_snapshot
+#     snaps = vm[label].snapshotListNames(flags=0)
+#   AttributeError: virDomain instance has no attribute '__getitem__'
+#
+
+last_snapshot() {
+  virsh snapshot-list $1 | tail -n 2 | head -n 1 | awk '{ print $1 }'
+}
+
+if [[ $# -ne 1 || "$(id -u)" != "0" ]]; then
+  echo "usage: sudo ./resetcurrentsnapshot VM"
+  exit 2
+fi
+
+vm=$1
+
+if virsh snapshot-current $vm &>/dev/null
+then
+  echo "current exists, skipping..."
+else
+  echo "current does not exist, fixing..."
+  virsh snapshot-current $vm --snapshotname $(last_snapshot $vm)
+fi
