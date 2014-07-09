@@ -36,8 +36,8 @@ vm=$1
 
 if virsh snapshot-current $vm &>/dev/null
 then
-  echo "current exists, skipping..."
+  echo "$vm's current exists, skipping..."
 else
-  echo "current does not exist, fixing..."
+  echo "$vm's current does not exist, fixing..."
   virsh snapshot-current $vm --snapshotname $(last_snapshot $vm)
 fi
