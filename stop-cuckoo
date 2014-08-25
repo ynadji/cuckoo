@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# Stop cuckoo and related services.
+#
+# Requires root to run.
+
+if [[ $# -ne 0 || "$(id -u)" != "0" ]]; then
+    echo "usage: sudo ./stop-cuckoo"
+    exit 2
+fi
+
+CUCKOO_DIR=/home/yacin/cuckoo
+
+cd $CUCKOO_DIR
+
+# stop cuckoo.py
+killall python # need a cleaner version of this. make this a /etc/init.d-like service
+sleep 60
+
+# stop remaining VMs that are running (first/second nicely, harshly finally)
+for vm in $(virsh list | tail -n +3 | awk '{ print $2 }'); do virsh shutdown $vm; done
+sleep 60
+for vm in $(virsh list | tail -n +3 | awk '{ print $2 }'); do virsh shutdown $vm; done
+sleep 120
+for vm in $(virsh list | tail -n +3 | awk '{ print $2 }'); do virsh destroy $vm; done
+
+# flush network settings
+virsh net-stop gza
+iptables --flush
+iptables -t nat --flush
+
+# sometimes tcpdump hangs and blocks the port for the resultserver
+killall tcpdump

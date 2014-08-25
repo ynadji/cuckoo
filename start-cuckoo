@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Start cuckoo from a fresh restarted machine (i.e., must start network
+# and restart iptables settings).
+#
+# Requires root to run.
+
+if [[ $# -ne 0 || "$(id -u)" != "0" ]]; then
+    echo "usage: sudo ./start-cuckoo"
+    exit 2
+fi
+
+CUCKOO_DIR=/home/yacin/cuckoo
+
+cd $CUCKOO_DIR
+
+virsh net-start gza
+iptables-restore < iptables.20140416
+python cuckoo.py

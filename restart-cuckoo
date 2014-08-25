@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Restart cuckoo.
+#
+# Requires root to run.
+
+if [[ $# -ne 0 || "$(id -u)" != "0" ]]; then
+    echo "usage: sudo ./restart-cuckoo"
+    exit 2
+fi
+
+CUCKOO_DIR=/home/yacin/cuckoo
+
+cd $CUCKOO_DIR
+
+echo "Stopping cuckoo..."
+./stop-cuckoo
+sleep 30
+echo "Starting cuckoo..."
+./start-cuckoo
