@@ -11,9 +11,11 @@ if [[ $# -ne 0 || "$(id -u)" != "0" ]]; then
 fi
 
 CUCKOO_DIR=/home/yacin/cuckoo
+CUCKOO_LOG=/var/log/cuckoo.log
 
 cd $CUCKOO_DIR
 
 virsh net-start gza
 iptables-restore < iptables.20140416
-python cuckoo.py
+# Overwrite the log since we do periodic restarts
+python cuckoo.py &> $CUCKOO_LOG
