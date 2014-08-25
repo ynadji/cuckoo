@@ -12,6 +12,7 @@ from shutil import move
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), ".."))
 
 from lib.cuckoo.core.database import Database, TASK_REPORTED
+from lib.cuckoo.common.colors import bold, green, red, yellow
 
 def _analysis_dir(task_id):
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", 'storage', 'analyses', str(task_id)))
@@ -47,6 +48,7 @@ def main():
             task_path_dst = os.path.join(archive_dir, str(task.id))
             move(task_path_src, task_path_dst)
             os.symlink(task_path_dst, task_path_src)
+            print(bold(green('Successfully')) + ' archived %s' % task_path_dst)
 
 if __name__ == '__main__':
     sys.exit(main())
