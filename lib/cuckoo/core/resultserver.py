@@ -122,8 +122,6 @@ class Resulthandler(SocketServer.BaseRequestHandler):
         self.done_event = Event()
         self.pid, self.ppid, self.procname = (None, None, None)
         self.server.register_handler(self)
-        self.poll = select.poll()
-        self.poll.register(self.request, select.POLLIN | select.POLLPRI)
 
     def finish(self):
         self.done_event.set()
@@ -132,7 +130,8 @@ class Resulthandler(SocketServer.BaseRequestHandler):
         while True:
             if self.end_request.isSet():
                 return False
-            if self.poll.poll() is not None:
+            rs, ws, xs = select.select([self.request], [], [], 1)
+            if rs:
                 return True
 
     def read(self, length):
