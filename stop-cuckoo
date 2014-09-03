@@ -25,7 +25,7 @@ sleep 120
 for vm in $(virsh list | tail -n +3 | awk '{ print $2 }'); do virsh destroy $vm; done
 
 # flush network settings
-virsh net-stop gza
+virsh net-destroy gza
 iptables --flush
 iptables -t nat --flush
 
