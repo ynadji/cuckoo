@@ -17,5 +17,9 @@ cd $CUCKOO_DIR
 
 virsh net-start gza
 iptables-restore < iptables.20140416
+
+# reset snapshots (it's fast so let's just be safe and do it twice)
+for vm in $(virsh list --all | tail -n +3 | awk '{ print $2 }'); do ./resetcurrentsnapshot $vm; done
+
 # Overwrite the log since we do periodic restarts
 python cuckoo.py &> $CUCKOO_LOG
