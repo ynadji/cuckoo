@@ -10,8 +10,29 @@ if [[ $# -ne 0 || "$(id -u)" != "0" ]]; then
     exit 2
 fi
 
+# to see if cuckoo terminated early
+waitpid () {
+  pid=$1
+  while true; do
+    kill -0 $pid &> /dev/null
+    if [ $? -ne 0 ]; then
+      return
+    fi
+
+    sleep 60
+  done
+}
+
+LOCKFILE=/var/lock/cuckoo
+
 CUCKOO_DIR=/home/yacin/cuckoo
 CUCKOO_LOG=/var/log/cuckoo.log
+
+# If the log still exists it's already running.
+if [ -a $LOCKFILE ]; then
+  echo "Cuckoo is already running with PID $(cat $LOCKFILE)"
+  exit -1
+fi
 
 cd $CUCKOO_DIR
 
@@ -21,5 +42,19 @@ iptables-restore < iptables.20140416
 # reset snapshots (it's fast so let's just be safe and do it twice)
 for vm in $(virsh list --all | tail -n +3 | awk '{ print $2 }'); do ./resetcurrentsnapshot $vm; done
 
+# Run cuckoo and restart if it terminates prematurely while preserving the log
+# to perform post-mortem analysis.
+
 # Overwrite the log since we do periodic restarts
-python cuckoo.py &> $CUCKOO_LOG
+python cuckoo.py &> $CUCKOO_LOG &
+
+CUCKOO_PID=$!
+echo $CUCKOO_PID > $LOCKFILE
+echo "Tracking PID: $CUCKOO_PID"
+waitpid $CUCKOO_PID
+
+# If the log still exists it was NOT shut down properly. Restart.
+if [ -a $LOCKFILE ]; then
+  mv $CUCKOO_LOG $CUCKOO_LOG-crashdump.$(date +%Y%m%d)
+  ./restart-cuckoo &
+fi

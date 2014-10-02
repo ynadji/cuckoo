@@ -9,12 +9,17 @@ if [[ $# -ne 0 || "$(id -u)" != "0" ]]; then
     exit 2
 fi
 
+LOCKFILE=/var/lock/cuckoo
+
 CUCKOO_DIR=/home/yacin/cuckoo
 
 cd $CUCKOO_DIR
 
 # stop cuckoo.py
-killall python # need a cleaner version of this. make this a /etc/init.d-like service
+CUCKOO_PID=$(cat $LOCKFILE)
+rm -f $LOCKFILE
+echo "Killing cuckoo PID $CUCKOO_PID"
+kill $CUCKOO_PID
 sleep 60
 
 # stop remaining VMs that are running (first/second nicely, harshly finally)
@@ -31,3 +36,6 @@ iptables -t nat --flush
 
 # sometimes tcpdump hangs and blocks the port for the resultserver
 killall tcpdump
+
+# reset snapshots
+for vm in $(virsh list --all | tail -n +3 | awk '{ print $2 }'); do ./resetcurrentsnapshot $vm; done
